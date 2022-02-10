@@ -1,6 +1,4 @@
 #THIS SCRIPT CALCULATES FLOW-KICK TRAJECTORIES FOR A HARVESTED POPULATION
-#The population's undisturbed dynamics are given by the ODE function dxdtAllee.m
-
 include("JuliaPackages.jl")
 
 function flow_kick_trajectory(model::Function, k, τ, x0, N)
