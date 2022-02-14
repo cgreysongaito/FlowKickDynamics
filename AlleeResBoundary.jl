@@ -3,43 +3,46 @@
 
 include("JuliaPackages.jl")
 
-#Create the inverse of the vector field function, i.e. dt/dx
-function pop1(x)
-   return 1/(x * (1 - (x/100)) * ((x/20) - 1))
+@with_kw mutable struct AlleePar
+    K=100.0  #carrying capacity
+    A=20.0 #critical Allee threshold
+    α=0.0 #first parameter in quadratic modifier
+    β=0.0 #second parameter in quadratic modifier
+    γ=1.0 #third parameter in quadratic modifier - set at 1.0 for when don't want quadratic modifier
 end
 
-function pop2(x)
-    return 1/(x * (1 - (x/100)) * ((x/20) - 1) * ((0.0002 * x^2) - (0.024 * x) + 1.4))
+function Allee_model(x, p)
+    @unpack K, A, α, β, γ = p
+    return (x * (1 - (x/K)) * ((x/A) - 1) * ((α * x^2) - (β * x) + γ))
 end
 
-function resboundAllee(popfun::Function)
+function res_bound(model::Function, p, krange, stable, unstable, x0stepsize)
     #Create a range of kick values 
-    krange = -79.8:0.1:0;  #go close to distance to threshold, but not quite
-
     #Create an array to store points on the resilience boundary.
     ResilienceCurveτ = zeros(length(krange))
-    ResilienceCurvek = zeros(length(krange))
-
     for (ki, knum) in enumerate(krange)
-        x0range = 20.1-knum:0.1:99.9; #identify a set of x values at which to start flowing (min computed over this set)
+        if unstable < stable
+            x0range = unstable+x0stepsize-knum:x0stepsize:stable-x0stepsize #identify a set of x values at which to start flowing (min computed over this set)
+        else
+            x0range = stable+x0stepsize:x0stepsize:unstable-x0stepsize-knum
+        end
         TimeToFlow = zeros(length(x0range))
             for (x0i, x0num) in enumerate(x0range)
-                TimeToFlow[x0i] = quadgk(x -> popfun(x), x0num+knum, x0num)[1] #calculate time to flow from x0+k to x0
+                TimeToFlow[x0i] = quadgk(x -> 1/model(x, p), x0num+knum, x0num)[1] #calculate time to flow from x0+k to x0 #USES the inverse of the model
             end
         ResilienceCurveτ[ki] = minimum(TimeToFlow)
-        ResilienceCurvek[ki] = abs(knum)
     end
-    return [ResilienceCurveτ, ResilienceCurvek]
+    return [ResilienceCurveτ, abs.(collect(krange))]
 end
 
 let
-    data1 = resboundAllee(pop1)
-    data2 = resboundAllee(pop2)
+    data1 = res_bound(Allee_model, AlleePar(), -79.8:0.1:0.0, 100.0, 20.0, 0.1)
+    data2 = res_bound(Allee_model,AlleePar(α = 0.0002, β=0.024, γ=1.4), -79.8:0.1:0.0, 100.0, 20.0, 0.1)
     test = figure()
     plot(data1[1],data1[2])
     plot(data2[1],data2[2])
-    xlabel("flow time tau")
-    ylabel("kick size |kappa|")
+    xlabel("flow time (τ)")
+    ylabel("kick size (κ)")
     xlim(0,5)
     ylim(0,80)
     return test
