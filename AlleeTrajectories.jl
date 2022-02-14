@@ -1,7 +1,7 @@
 #THIS SCRIPT CALCULATES FLOW-KICK TRAJECTORIES FOR A HARVESTED POPULATION
 include("JuliaPackages.jl")
 
-function flow_kick_trajectory(model::Function, k, τ, x0, N)
+function flow_kick_trajectory(model::Function, p, k, τ, x0, N)
     tspan = (0.0, τ*N)
     tvals = 0.0:τ/4:τ*N
 
@@ -10,7 +10,7 @@ function flow_kick_trajectory(model::Function, k, τ, x0, N)
     end
 
     cb = PeriodicCallback(kicks, τ, initial_affect = false)
-    prob = ODEProblem(model, [x0], tspan)
+    prob = ODEProblem(model, x0, tspan, p)
     sol = DifferentialEquations.solve(prob, callback = cb,  reltol = 1e-8)
     return solend = sol(tvals)
 end
