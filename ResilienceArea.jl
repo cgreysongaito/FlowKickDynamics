@@ -13,9 +13,7 @@ function res_area_prep(model::Function)
     ResilienceCurve_τ=zeros(length(krange))
     xmin=[99.99]
     for (ki, knum) in enumerate(krange)
-    #der=@(x) -(x.*(1-(x/100)).*((x/20)-1))+((x+k).*(1-((x+k)/100)).*(((x+k)/20)-1));
-    # der=@(x) -(x.*(1-(x/100)).*((x/20)-1).*(0.0002*x.^2-0.024*x+1.4))+((x+k).*(1-((x+k)/100)).*(((x+k)/20)-1).*(0.0002*(x+k).^2-0.024*(x+k)+1.4));
-        append!(xmin, find_zero(x->1/model(x+knum)-1/model(x),xmin[ki]))
+       append!(xmin, find_zero(x->1/model(x+knum)-1/model(x),xmin[ki]))
    #find root eqn. fzero function needs the function and initial guess
 #     initial guess should be between 20 and 100. start with x0=99.9 and
 #     then use previous answer for next x0
