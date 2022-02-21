@@ -1,13 +1,13 @@
 #For each harvest (kick) size, the script approximates the minimum time it takes to population to recover by that magnitude.
-function res_bound(model::Function, p, krange, stable, unstable, x0stepsize)
+function res_bound(model::Function, p, krange, stablept, unstablept, x0stepsize)
     #Create a range of kick values 
     #Create an array to store points on the resilience boundary.
     ResilienceCurveτ = zeros(length(krange))
     for (ki, knum) in enumerate(krange)
-        if unstable < stable
-            x0range = unstable+x0stepsize-knum:x0stepsize:stable-x0stepsize #identify a set of x values at which to start flowing (min computed over this set)
+        if unstablept < stablept
+            x0range = unstablept+x0stepsize-knum:x0stepsize:stablept-x0stepsize #identify a set of x values at which to start flowing (min computed over this set)
         else
-            x0range = stable+x0stepsize:x0stepsize:unstable-x0stepsize-knum
+            x0range = stablept+x0stepsize:x0stepsize:unstablept-x0stepsize-knum
         end
         TimeToFlow = zeros(length(x0range))
             for (x0i, x0num) in enumerate(x0range)
